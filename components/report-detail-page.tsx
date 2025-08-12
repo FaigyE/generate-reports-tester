@@ -35,23 +35,22 @@ export default function ReportDetailPage({ consolidatedData = [], isPreview = tr
         showerCount: consolidatedData[0].showerHeadCount,
         showerType: typeof consolidatedData[0].showerHeadCount,
       })
-
-      console.log("ReportDetailPage: About to process", consolidatedData.length, "units for rendering")
     }
   }, [consolidatedData])
 
   const sortedData = [...consolidatedData].sort((a, b) => {
-    const numA = Number.parseInt(a.unit)
-    const numB = Number.parseInt(b.unit)
+    const unitA = String(a.unit || "")
+    const unitB = String(b.unit || "")
+
+    const numA = Number.parseInt(unitA)
+    const numB = Number.parseInt(unitB)
 
     if (!isNaN(numA) && !isNaN(numB)) {
       return numA - numB
     }
 
-    return a.unit.localeCompare(b.unit, undefined, { numeric: true, sensitivity: "base" })
+    return unitA.localeCompare(unitB, undefined, { numeric: true, sensitivity: "base" })
   })
-
-  console.log("ReportDetailPage: Sorted data length:", sortedData.length)
 
   // Always show all aerator columns like in Foxcroft report
   const hasKitchenAerators = true
@@ -78,76 +77,52 @@ export default function ReportDetailPage({ consolidatedData = [], isPreview = tr
               <th className="text-left py-2 px-2 border-b">Unit</th>
               {hasKitchenAerators && (
                 <>
-                  <th className="text-left py-2 px-2 border-b">Existing Kitchen Aerator</th>
-                  <th className="text-left py-2 px-2 border-b">Installed Kitchen Aerator</th>
+                  <th className="text-left py-2 px-2 border-b">Kitchen Installed</th>
                 </>
               )}
               {hasBathroomAerators && (
                 <>
-                  <th className="text-left py-2 px-2 border-b">Existing Bathroom Aerator</th>
-                  <th className="text-left py-2 px-2 border-b">Installed Bathroom Aerator</th>
+                  <th className="text-left py-2 px-2 border-b">Bathroom Installed</th>
                 </>
               )}
               {hasShowers && (
                 <>
-                  <th className="text-left py-2 px-2 border-b">Existing Shower</th>
-                  <th className="text-left py-2 px-2 border-b">Installed Shower</th>
+                  <th className="text-left py-2 px-2 border-b">Shower Installed</th>
                 </>
               )}
+              <th className="text-left py-2 px-2 border-b">Toilet Installed</th>
               {hasNotes && <th className="text-left py-2 px-2 border-b">Notes</th>}
             </tr>
           </thead>
           <tbody>
             {sortedData.map((item, index) => {
-              console.log(`Unit ${item.unit} counts:`, {
-                kitchen: item.kitchenAeratorCount,
-                bathroom: item.bathroomAeratorCount,
-                shower: item.showerHeadCount,
-              })
+              const kitchenCount = Number(item.kitchenAeratorCount) || 0
+              const bathroomCount = Number(item.bathroomAeratorCount) || 0
+              const showerCount = Number(item.showerHeadCount) || 0
 
-              const kitchenAerator = getAeratorDescription(item.kitchenAeratorCount, "kitchen")
-              const bathroomAerator = getAeratorDescription(item.bathroomAeratorCount, "bathroom")
-              const shower = getAeratorDescription(item.showerHeadCount, "shower")
+              const kitchenAerator = getAeratorDescription(kitchenCount, "kitchen")
+              const bathroomAerator = getAeratorDescription(bathroomCount, "bathroom")
+              const shower = getAeratorDescription(showerCount, "shower")
 
-              console.log(`Unit ${item.unit} descriptions:`, {
-                kitchen: kitchenAerator,
-                bathroom: bathroomAerator,
-                shower: shower,
-              })
-
-              const unitNotes = notes[item.unit] || ""
+              const unitNotes = String(notes[String(item.unit)] || "")
 
               return (
                 <tr key={index}>
-                  <td className="py-2 px-2 border-b">{item.unit}</td>
+                  <td className="py-2 px-2 border-b">{String(item.unit)}</td>
                   {hasKitchenAerators && (
-                    <>
-                      <td className="py-2 px-2 border-b text-center">
-                        {kitchenAerator === "No Touch." ? "" : "1.0 GPM"}
-                      </td>
-                      <td className="py-2 px-2 border-b text-center">
-                        {kitchenAerator === "No Touch." ? "No Touch." : kitchenAerator}
-                      </td>
-                    </>
+                    <td className="py-2 px-2 border-b text-center">
+                      {kitchenAerator === "No Touch." ? "No Touch." : kitchenAerator}
+                    </td>
                   )}
                   {hasBathroomAerators && (
-                    <>
-                      <td className="py-2 px-2 border-b text-center">
-                        {bathroomAerator === "No Touch." ? "" : "1.0 GPM"}
-                      </td>
-                      <td className="py-2 px-2 border-b text-center">
-                        {bathroomAerator === "No Touch." ? "No Touch." : bathroomAerator}
-                      </td>
-                    </>
+                    <td className="py-2 px-2 border-b text-center">
+                      {bathroomAerator === "No Touch." ? "No Touch." : bathroomAerator}
+                    </td>
                   )}
                   {hasShowers && (
-                    <>
-                      <td className="py-2 px-2 border-b text-center">{shower === "No Touch." ? "" : "1.75 GPM"}</td>
-                      <td className="py-2 px-2 border-b text-center">
-                        {shower === "No Touch." ? "No Touch." : shower}
-                      </td>
-                    </>
+                    <td className="py-2 px-2 border-b text-center">{shower === "No Touch." ? "No Touch." : shower}</td>
                   )}
+                  <td className="py-2 px-2 border-b text-center">0.8 GPF</td>
                   {hasNotes && <td className="py-2 px-2 border-b">{unitNotes}</td>}
                 </tr>
               )
